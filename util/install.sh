@@ -141,7 +141,7 @@ function mn_deps {
     fi
 
     echo "Installing Mininet core"
-    pushd $MININET_DIR/mininet-wifi
+    pushd $MININET_DIR/mininet-optical-wifi
     sudo make install
     popd
 }
@@ -150,18 +150,38 @@ function mn_deps {
 function wifi_deps {
     echo "Installing Mininet-WiFi dependencies"
     $install wireless-tools python-numpy python-scipy pkg-config python-matplotlib libnl-3-dev libnl-genl-3-dev libssl-dev make libevent-dev patch
-    pushd $MININET_DIR/mininet-wifi
+    pushd $MININET_DIR/mininet-optical-wifi
     git submodule update --init --recursive
-    pushd $MININET_DIR/mininet-wifi/hostap
-    patch -p0 < $MININET_DIR/mininet-wifi/util/hostap-patches/config.patch
-    pushd $MININET_DIR/mininet-wifi/hostap/hostapd
+    pushd $MININET_DIR/mininet-optical-wifi/hostap
+    patch -p0 < $MININET_DIR/mininet-optical-wifi/util/hostap-patches/config.patch
+    pushd $MININET_DIR/mininet-optical-wifi/hostap/hostapd
     cp defconfig .config
     sudo make && make install
-    pushd $MININET_DIR/mininet-wifi/hostap/wpa_supplicant
+    pushd $MININET_DIR/mininet-optical-wifi/hostap/wpa_supplicant
     cp defconfig .config
     sudo make && make install
-    pushd $MININET_DIR/mininet-wifi/iw
+    pushd $MININET_DIR/mininet-optical-wifi/iw
     sudo make && make install
+}
+
+function optical_deps {
+    echo "Installing Optical dependencies"
+    $install gcc wget make autoconf openssl libssl-dev libncurses5 libncurses5-dev bridge-utils libpcap0.8 libpcap-dev libcap2-bin uml-utilities
+    pushd $MININET_DIR/mininet-optical-wifi/mininet/optical
+    wget http://erlang.org/download/otp_src_R16B.tar.gz
+    tar zxf otp_src_R16B.tar.gz
+    cd otp_src_R16B
+    sudo ./configure
+    sudo make && sudo make install
+    cd ..
+    rm otp_src_R16B.tar.gz
+    git clone https://github.com/vmehmeri/linc-oe
+    cd linc-oe
+    sudo make rel
+    cd ..
+    git clone https://github.com/FlowForwarding/LINC-config-generator.git
+    cd LINC-config-generator
+    sudo make
 }
 
 # Install Mininet developer dependencies
@@ -190,7 +210,7 @@ function of {
     cd $BUILD_DIR/openflow
 
     # Patch controller to handle more than 16 switches
-    patch -p1 < $MININET_DIR/mininet-wifi/util/openflow-patches/controller.patch
+    patch -p1 < $MININET_DIR/mininet-optical-wifi/util/openflow-patches/controller.patch
 
     # Resume the install:
     ./boot.sh
@@ -261,7 +281,7 @@ function install_wireshark {
     # Copy coloring rules: OF is white-on-blue:
     echo "Optionally installing wireshark color filters"
     mkdir -p $HOME/.wireshark
-    cp -n $MININET_DIR/mininet-wifi/util/colorfilters $HOME/.wireshark
+    cp -n $MININET_DIR/mininet-optical-wifi/util/colorfilters $HOME/.wireshark
 
     echo "Checking Wireshark version"
     WSVER=`wireshark -v | egrep -o '[0-9\.]+' | head -1`
@@ -500,9 +520,9 @@ function nox {
 
     # Apply patches
     git checkout -b tutorial-destiny
-    git am $MININET_DIR/mininet-wifi/util/nox-patches/*tutorial-port-nox-destiny*.patch
+    git am $MININET_DIR/mininet-optical-wifi/util/nox-patches/*tutorial-port-nox-destiny*.patch
     if [ "$DIST" = "Ubuntu" ] && version_ge $RELEASE 12.04; then
-        git am $MININET_DIR/mininet-wifi/util/nox-patches/*nox-ubuntu12-hacks.patch
+        git am $MININET_DIR/mininet-optical-wifi/util/nox-patches/*nox-ubuntu12-hacks.patch
     fi
 
     # Build
@@ -567,17 +587,17 @@ function pox {
 function iw {
     echo "Installing iw..."
     $install wireless-tools python-numpy python-scipy pkg-config python-matplotlib libnl-3-dev libnl-genl-3-dev libssl-dev patch
-    pushd $MININET_DIR/mininet-wifi
+    pushd $MININET_DIR/mininet-optical-wifi
     git submodule update --init --recursive
-    pushd $MININET_DIR/mininet-wifi/hostap
-    patch -p0 < $MININET_DIR/mininet-wifi/util/hostap-patches/config.patch
-    pushd $MININET_DIR/mininet-wifi/hostap/hostapd
+    pushd $MININET_DIR/mininet-optical-wifi/hostap
+    patch -p0 < $MININET_DIR/mininet-optical-wifi/util/hostap-patches/config.patch
+    pushd $MININET_DIR/mininet-optical-wifi/hostap/hostapd
     cp defconfig .config
     sudo make && make install
-    pushd $MININET_DIR/mininet-wifi/hostap/wpa_supplicant
+    pushd $MININET_DIR/mininet-optical-wifi/hostap/wpa_supplicant
     cp defconfig .config
     sudo make && make install
-    pushd $MININET_DIR/mininet-wifi/iw
+    pushd $MININET_DIR/mininet-optical-wifi/iw
     sudo make && make install
     #popd
 }
@@ -750,7 +770,7 @@ function all {
     oftest
     cbench
     wmediumd
-    echo "Enjoy Mininet-WiFi!"
+    echo "Enjoy Mininet-Optical-WiFi!"
 }
 
 # Restore disk space and remove sensitive files before shipping a VM.
@@ -808,6 +828,7 @@ function usage {
     printf -- ' -l: insta(L)l wmediumd\n' >&2
     printf -- ' -m: install Open vSwitch kernel (M)odule from source dir\n' >&2
     printf -- ' -n: install Mini(N)et dependencies + core files\n' >&2
+    printf -- ' -o: install Mininet optical dependencies\n' >&2
     printf -- ' -p: install (P)OX OpenFlow Controller\n' >&2
     printf -- ' -r: remove existing Open vSwitch packages\n' >&2
     printf -- ' -s <dir>: place dependency (S)ource/build trees in <dir>\n' >&2
@@ -829,7 +850,7 @@ if [ $# -eq 0 ]
 then
     all
 else
-    while getopts 'abcdefhiklmnprs:tvV:wWxy03' OPTION
+    while getopts 'abcdefhiklmnoprs:tvV:wWxy03' OPTION
     do
       case $OPTION in
       a)    all;;
@@ -848,6 +869,7 @@ else
       l)    wmediumd;;
       m)    modprobe;;
       n)    mn_deps;;
+      o)    optical_deps;;
       p)    pox;;
       r)    remove_ovs;;
       s)    mkdir -p $OPTARG; # ensure the directory is created

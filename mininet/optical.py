@@ -20,8 +20,9 @@ from mininet.log import info, error
 SLEEP_TIME = 2
 TIMEOUT = 60
 
-LINC_ROOT = os.path.expanduser("../LINC-Switch")
-CONFIG_GEN_ROOT = os.path.expanduser("../LINC-config-generator/")
+ROOT = os.path.dirname(os.path.realpath(__file__))
+LINC_ROOT = os.path.expanduser(ROOT + "/optical/linc-oe")
+CONFIG_GEN_ROOT = os.path.expanduser(ROOT + "/optical/LINC-config-generator/")
 
 LINC_CONFIG = os.path.join(LINC_ROOT, "rel/linc/releases/1.0/sys.config")
 LINC_BIN = os.path.join(LINC_ROOT, "rel/linc/bin/linc")
