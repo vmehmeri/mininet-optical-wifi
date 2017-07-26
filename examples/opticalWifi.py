@@ -20,7 +20,7 @@ def topology():
     #net = Mininet( controller=Controller, link=TCLink, switch=OVSKernelSwitch )
     #net = LINCNet(controller=Controller, autoStaticArp=True, listenPort=6634)
     net = LINCNet(controller=onos, autoStaticArp=True, listenPort=6634)
-    #c1 = net.addController('c1')
+    c1 = net.addController('c1')
 
     print "*** Creating nodes"
     ap1 = net.addAccessPoint( 'ap1', ssid="ssid_ap1", mode="g", channel="5" )
@@ -73,6 +73,7 @@ def topology():
 
     print "*** Starting network"
     net.build()
+    net.start()
     #c0.start()
     #ap1.start( [c0] )
 
