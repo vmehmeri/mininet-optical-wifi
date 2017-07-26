@@ -14,8 +14,13 @@ from mininet.link import TCLink
 
 def topology():
     "Create a network."
+    onos = lambda n: RemoteController(n, ip="10.0.2.15", port=6633, inNamespace=False)
+
+
     #net = Mininet( controller=Controller, link=TCLink, switch=OVSKernelSwitch )
-    net = LINCNet(controller=Controller, autoStaticArp=True, listenPort=6634)
+    #net = LINCNet(controller=Controller, autoStaticArp=True, listenPort=6634)
+    net = LINCNet(controller=onos, autoStaticArp=True, listenPort=6634)
+    #c1 = net.addController('c1')
 
     print "*** Creating nodes"
     ap1 = net.addAccessPoint( 'ap1', ssid="ssid_ap1", mode="g", channel="5" )
@@ -24,7 +29,7 @@ def topology():
     sta2 = net.addStation( 'sta2', ip='192.168.0.2/24' )
     h3 = net.addHost( 'h3', ip='192.168.0.3/24' )
     h4 = net.addHost( 'h4', ip='192.168.0.4/24' )
-    c0 = net.addController('c0', controller=Controller, ip='127.0.0.1' )
+    #c0 = net.addController('c0', controller=Controller, ip='127.0.0.1' )
 
     # Add optical switches
     r1 = net.addSwitch('r1', dpid='00:00:00:00:00:00:00:11', cls=LINCSwitch)
@@ -68,8 +73,8 @@ def topology():
 
     print "*** Starting network"
     net.build()
-    c0.start()
-    ap1.start( [c0] )
+    #c0.start()
+    #ap1.start( [c0] )
 
     print "*** Running CLI"
     CLI( net )

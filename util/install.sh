@@ -167,7 +167,7 @@ function wifi_deps {
 function optical_deps {
     echo "Installing Optical dependencies"
     $install gcc wget make autoconf openssl libssl-dev libncurses5 libncurses5-dev bridge-utils libpcap0.8 libpcap-dev libcap2-bin uml-utilities
-    pushd $MININET_DIR/mininet-optical-wifi/mininet/optical
+    cd
     wget http://erlang.org/download/otp_src_R16B.tar.gz
     tar zxf otp_src_R16B.tar.gz
     cd otp_src_R16B
