@@ -12,3 +12,5 @@ dist
 doc/html
 doc/latex
 trunk
+sys.config
+topology.json
